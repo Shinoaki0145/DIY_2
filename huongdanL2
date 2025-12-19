@@ -1,0 +1,227 @@
+📁 CẤU TRÚC THƯ MỤC KHUYÊN DÙNG
+project/
+│── ObesityDataset.csv
+│── task2_evaluation.py
+│── task3.py
+│── best_model.pkl        ← output của task 2
+│── requirements.txt
+
+🟢 TASK 2 – EVALUATION + SAVE MODEL
+
+📄 task2_evaluation.py
+
+👉 File này:
+
+Train nhiều model
+
+Evaluate đầy đủ
+
+Chọn model tốt nhất
+
+Save model cho web
+
+🔹 TASK 2 – FULL CODE
+import pandas as pd
+import joblib
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, label_binarize
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.preprocessing import FunctionTransformer
+
+1️⃣ Load dataset
+df = pd.read_csv("ObesityDataset.csv")
+
+X = df.drop(columns=["NObesity"])
+y = df["NObesity"]
+
+2️⃣ Train / Test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    stratify=y,
+    random_state=42
+)
+
+3️⃣ Preprocessing (Pipeline bắt buộc)
+numeric_features = ["Age", "FCVC", "NCP", "CH2O", "FAF", "TUE"]
+
+categorical_features = [
+    "Gender", "family_history_with_overweight",
+    "FAVC", "CAEC", "SMOKE", "SCC", "CALC", "MTRANS"
+]
+
+numeric_pipeline = Pipeline([
+    ("scaler", StandardScaler())
+])
+
+categorical_pipeline = Pipeline([
+    ("encoder", OneHotEncoder(handle_unknown="ignore"))
+])
+
+preprocessor = ColumnTransformer([
+    ("num", numeric_pipeline, numeric_features),
+    ("cat", categorical_pipeline, categorical_features)
+])
+
+4️⃣ Khai báo models
+dense_transformer = FunctionTransformer(lambda x: x.toarray(), accept_sparse=True)
+
+models = {
+    "Logistic Regression": Pipeline([
+        ("preprocessor", preprocessor),
+        ("classifier", LogisticRegression(max_iter=1000))
+    ]),
+    "Decision Tree": Pipeline([
+        ("preprocessor", preprocessor),
+        ("classifier", DecisionTreeClassifier(random_state=42))
+    ]),
+    "Random Forest": Pipeline([
+        ("preprocessor", preprocessor),
+        ("classifier", RandomForestClassifier(n_estimators=100, random_state=42))
+    ]),
+    "KNN": Pipeline([
+        ("preprocessor", preprocessor),
+        ("classifier", KNeighborsClassifier(n_neighbors=5))
+    ]),
+    "Naive Bayes": Pipeline([
+        ("preprocessor", preprocessor),
+        ("to_dense", dense_transformer),
+        ("classifier", GaussianNB())
+    ])
+}
+
+5️⃣ Evaluation
+results = {}
+classes = y.unique()
+y_test_bin = label_binarize(y_test, classes=classes)
+
+for name, model in models.items():
+    print(f"\n===== {name} =====")
+
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    y_proba = model.predict_proba(X_test)
+
+    acc = accuracy_score(y_test, y_pred)
+    roc_auc = roc_auc_score(
+        y_test_bin,
+        y_proba,
+        average="macro",
+        multi_class="ovr"
+    )
+
+    print("Accuracy:", acc)
+    print("Macro ROC-AUC:", roc_auc)
+    print(classification_report(y_test, y_pred))
+
+    cm = confusion_matrix(y_test, y_pred)
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+    plt.title(f"Confusion Matrix - {name}")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.show()
+
+    results[name] = roc_auc
+
+6️⃣ Chọn & save model tốt nhất
+best_model_name = max(results, key=results.get)
+best_model = models[best_model_name]
+
+print("\nBest model:", best_model_name)
+
+joblib.dump(best_model, "best_model.pkl")
+print("Saved best_model.pkl")
+
+
+📌 Output của Task 2:
+✅ best_model.pkl → dùng cho Task 3
+
+🟢 TASK 3 – DEPLOY WEB BẰNG GRADIO
+
+📄 task3.py
+
+🔹 TASK 3 – FULL CODE
+import gradio as gr
+import joblib
+import pandas as pd
+
+model = joblib.load("best_model.pkl")
+
+def predict_obesity(
+    Gender, Age, family_history, FAVC, FCVC, NCP,
+    CAEC, SMOKE, CH2O, SCC, FAF, TUE, CALC, MTRANS
+):
+    df = pd.DataFrame([{
+        "Gender": Gender,
+        "Age": Age,
+        "family_history_with_overweight": family_history,
+        "FAVC": FAVC,
+        "FCVC": FCVC,
+        "NCP": NCP,
+        "CAEC": CAEC,
+        "SMOKE": SMOKE,
+        "CH2O": CH2O,
+        "SCC": SCC,
+        "FAF": FAF,
+        "TUE": TUE,
+        "CALC": CALC,
+        "MTRANS": MTRANS
+    }])
+
+    return model.predict(df)[0]
+
+Interface Gradio
+interface = gr.Interface(
+    fn=predict_obesity,
+    inputs=[
+        gr.Dropdown(["Male", "Female"], label="Gender"),
+        gr.Number(label="Age"),
+        gr.Dropdown(["yes", "no"], label="Family history with overweight"),
+        gr.Dropdown(["yes", "no"], label="Frequent high caloric food"),
+        gr.Slider(1, 3, label="Vegetable consumption"),
+        gr.Slider(1, 4, label="Number of meals"),
+        gr.Dropdown(["no", "Sometimes", "Frequently", "Always"], label="Food between meals"),
+        gr.Dropdown(["yes", "no"], label="Smoke"),
+        gr.Slider(1, 3, label="Water consumption"),
+        gr.Dropdown(["yes", "no"], label="Calories monitoring"),
+        gr.Slider(0, 3, label="Physical activity"),
+        gr.Slider(0, 2, label="Technology usage"),
+        gr.Dropdown(["no", "Sometimes", "Frequently", "Always"], label="Alcohol"),
+        gr.Dropdown(
+            ["Automobile", "Bike", "Motorbike", "Public_Transportation", "Walking"],
+            label="Transportation"
+        )
+    ],
+    outputs="text",
+    title="Obesity Level Prediction",
+    description="Predict obesity level based on eating habits"
+)
+
+interface.launch()
+
+📦 requirements.txt (CHO HUGGINGFACE)
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+joblib
+gradio
+
+✅ TỔNG KẾT
+
+✔ Task 2: Evaluation + save model
+✔ Output: best_model.pkl
+✔ Task 3: Web Gradio (task3.py)
+✔ Deploy HuggingFace chạy được ngay
