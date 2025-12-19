@@ -75,9 +75,11 @@ pd.DataFrame(y_proba, columns=pipe_rf.named_steps['clf'].classes_).to_csv('rf_pr
 ---
 
 ## Sản phẩm nộp cho phần Mô hình hóa
-- Các pipeline đã huấn luyện cho tất cả mô hình (ưu tiên lưu bằng `joblib` hoặc `pickle`).
-- Các file dự đoán (nhãn + xác suất) cho mỗi mô hình trên tập test.
-- Một ô notebook ngắn mô tả lựa chọn tiền xử lý và danh sách `n+1` mô hình đã huấn luyện.
+- Các pipeline đã huấn luyện cho tất cả mô hình (ưu tiên lưu bằng `joblib` hoặc `pickle`). **Đảm bảo pipeline bao gồm cả bước tiền xử lý**.
+- Các file dự đoán (nhãn + xác suất) cho mỗi mô hình trên tập test (ví dụ: `rf_predictions.csv`, `rf_probas.csv`).
+- Các file hỗ trợ để triển khai web: `best_pipeline.joblib`, `feature_order.json` (liệt kê tên cột theo thứ tự đầu vào), `target_mapping.json` (bản đồ mã hóa nhãn).
+- `requirements.txt` (ghi rõ phiên bản thư viện dùng để chạy lại môi trường).
+- Một ô notebook ngắn mô tả lựa chọn tiền xử lý và danh sách `n+1` mô hình đã huấn luyện, cùng ghi rõ `random_state=42` và split stratified 80/20.
 
 ---
 

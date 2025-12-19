@@ -1,5 +1,13 @@
 # Hướng dẫn 3 — Triển khai
 
+**Yêu cầu tên file:** Viết script triển khai chính tên **`task3.py`** (hoặc `app.py` được chấp nhận) chứa ứng dụng Gradio. Script này phải:
+- Nạp pipeline đã lưu (`best_pipeline.joblib`) và các file phụ trợ (`feature_order.json`, `target_mapping.json`) khi khởi động.
+- Cung cấp hàm dự đoán trả về **(label, probabilities)**; probabilities phải trả về một dict mapping label → float.
+- Giao diện Gradio phải có input controls tương ứng tất cả các thuộc tính đầu vào (Dropdown cho categorical, Number cho numeric).  
+- Có ví dụ đầu vào (examples) để kiểm thử nhanh trong UI.
+
+Triển khai `task3.py` lên **Hugging Face Spaces (Gradio)**, kèm theo `requirements.txt` (ghi phiên bản `gradio`, `scikit-learn`, `pandas`, `joblib`, v.v.) và `README.md` hướng dẫn nhanh.
+
 - Triển khai pipeline tốt nhất (preprocessing + model) dưới dạng ứng dụng web dùng **Gradio**, và publish trên **Hugging Face Spaces**.
 
 ---

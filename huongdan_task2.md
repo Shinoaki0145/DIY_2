@@ -1,5 +1,7 @@
 # Hướng dẫn 2 — Đánh giá
 
+**Lưu ý:** Bạn có thể thực hiện toàn bộ phần Đánh giá trong `task2.ipynb` (đánh giá trực tiếp trên tập test) và đồng thời tạo các file đầu ra cần cho phần Triển khai web (Task 3): `best_pipeline.joblib`, `<model>_predictions.csv`, `<model>_probas.csv`, `feature_order.json` (liệt kê tên cột theo thứ tự đầu vào cho pipeline), và `target_mapping.json` (bản đồ mã hóa nhãn). Các file này phải được lưu trong thư mục rõ ràng (ví dụ `pipelines/`) để thuận tiện cho Task 3.
+
 - Các chỉ số bắt buộc: Accuracy, Ma trận nhầm lẫn (heatmap), Macro Precision, Macro Recall, Macro F1-score, Macro ROC–AUC (đa lớp, trung bình macro).
 
 ---
