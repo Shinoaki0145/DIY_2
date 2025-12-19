@@ -1,1 +1,1 @@
-ý tưởng
+keu ai lam Evaluation tren file task 2 luon. output la file model de lam web. task 3 doi thanh deploy web bang Gradio. task3.py
